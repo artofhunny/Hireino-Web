@@ -22,12 +22,14 @@ import {
 import { Input } from "@/components/ui/input";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "./ui/label";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import axios from "axios";
 import { BASE_URL } from "@/utils/constants";
 import { toast } from "sonner";
 import { useFormik } from "formik";
 import * as Yup from "yup";
+import { BarLoader } from "react-spinners";
+import { updateApply } from "@/utils/jobSlice";
 
 const ApplyJobForm = () => {
   // const [education, setEducation] = useState("");
@@ -35,8 +37,10 @@ const ApplyJobForm = () => {
   // const [skills, setSkills] = useState("react, js, node, tailwind, express, css");
   // const [resume, setResume] = useState("");
   const [open, setOpen] = useState(false);
+  const [loading, setLoading] = useState(false);
 
   const job = useSelector((store) => store.job.job);
+  const dispatch = useDispatch();
 
   const formSchema = Yup.object().shape({
     experience: Yup.string().required("Experience is required"),
@@ -63,7 +67,7 @@ const ApplyJobForm = () => {
       resume: null,
     },
     validationSchema: formSchema,
-    onSubmit: async (values) => {
+    onSubmit: async (values, {setErrors}) => {
       const formData = new FormData();
       formData.append("education", values.education);
       formData.append("experience", values.experience);
@@ -71,14 +75,25 @@ const ApplyJobForm = () => {
       formData.append("resume", values.resume);
 
       try {
+        setLoading(true);
         await axios.post(BASE_URL + "/application/new/" + job._id, formData, {
           withCredentials: true,
         });
 
+        setLoading(false);
+        dispatch(updateApply(job));
         setOpen(false);
         toast.success("You successfully applied to the job");
       } catch (error) {
         console.error(error);
+        setLoading(false);
+        // const backendError =
+        //   error?.response?.data?.message ||
+        //   error?.response?.data?.error ||
+        //   error?.response?.data ||
+        //   "Something went wrong";
+
+        // setErrors({});
       }
     },
   });
@@ -105,6 +120,7 @@ const ApplyJobForm = () => {
       </DrawerTrigger>
       <DrawerContent>
         <DrawerHeader className={"items-start"}>
+          {loading && <BarLoader className="mt-4" width={"100%"} color="#36d7b7" />}
           <DrawerTitle>Apply for FullStack developer at Microsoft</DrawerTitle>
           <DrawerDescription>Fill the form below</DrawerDescription>
         </DrawerHeader>
@@ -120,9 +136,9 @@ const ApplyJobForm = () => {
                 <SelectItem value="Fresher">Fresher</SelectItem>
                 <SelectItem value="6 Months">6 Months</SelectItem>
                 <SelectItem value="1 Year">1 Year</SelectItem>
-                <SelectItem value="2 Year">2 Year</SelectItem>
-                <SelectItem value="3 Year">3 Year</SelectItem>
-                <SelectItem value="4 Year">4 Year</SelectItem>
+                <SelectItem value="2 Years">2 Year</SelectItem>
+                <SelectItem value="3 Years">3 Year</SelectItem>
+                <SelectItem value="4 Years">4 Year</SelectItem>
                 <SelectItem value="More than 4 years">
                   More than 4 years
                 </SelectItem>
@@ -176,8 +192,10 @@ const ApplyJobForm = () => {
           {formik.errors.resume && (
             <p className="text-red-400 text-xs">{formik.errors.resume}</p>
           )}
-
-          <Button className="px-3 py-1 w-full bg-blue-500 rounded text-lg">
+          {/* {loading && ( */}
+            <BarLoader className="mt-4" width={"100%"} color="#36d7b7" />
+          
+          <Button disabled={loading} className="px-3 py-1 w-full bg-blue-500 rounded text-lg">
             Easy Apply
           </Button>
         </form>

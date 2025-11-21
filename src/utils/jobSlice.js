@@ -33,9 +33,16 @@ const jobSlice = createSlice({
       });
       state.allJobs = updatedJobs;
     },
+    updateApply: (state, action) => {
+      const newJob = {
+        ...action.payload,
+        isApplied: true,
+      }
+      state.job = newJob;
+    }
 
   },
 });
 
-export const { addAllJobs, addJob, unsaveJob, saveJob, deleteJobFromJobs } = jobSlice.actions;
+export const { addAllJobs, addJob, unsaveJob, saveJob, deleteJobFromJobs, updateApply } = jobSlice.actions;
 export default jobSlice.reducer;
